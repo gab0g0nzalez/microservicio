@@ -7,12 +7,17 @@ import com.donaton.voluntarios_service.service.AsignacionesVoluntariosService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/v1/asignaciones")
@@ -32,12 +37,32 @@ public class AsignacionesVoluntariosController {
 
     @Operation(summary = "Obtiene los datos de una asignacion en base a su Id.")
     @GetMapping("/{id}")
-    public ResponseEntity<AsignacionesVoluntarios> buscarPorId(@PathVariable Integer id) {
-        Optional<AsignacionesVoluntarios> asignaciones = service.getAsignacionVoluntario(id);
+    public EntityModel<AsignacionesVoluntarios> buscarPorId(@PathVariable Integer id) {
+        AsignacionesVoluntarios asignacion = service.getAsignacionVoluntario(id)
+                .orElseThrow(() -> new RuntimeException("Asignación no encontrada"));
 
-        if (asignaciones.isPresent())
-            return ResponseEntity.ok(asignaciones.get());
-        else return ResponseEntity.notFound().build();
+        EntityModel<AsignacionesVoluntarios> model = EntityModel.of(asignacion);
+
+        // Self link
+        model.add(
+                linkTo(
+                        methodOn(AsignacionesVoluntariosController.class).buscarPorId(id)
+                ).withSelfRel()
+        );
+
+        // Link directo (estilo del ejemplo)
+        model.add(
+                Link.of("http://localhost:8090/api/v1/asignaciones-voluntarios/" + id, "buscar por id")
+        );
+
+        // Link para listar todas
+        model.add(
+                linkTo(
+                        methodOn(AsignacionesVoluntariosController.class).listarAsignaciones()
+                ).withRel("Todas las asignaciones")
+        );
+
+        return model;
     }
 
     @Operation(summary = "Guarda una nueva asignacion.")

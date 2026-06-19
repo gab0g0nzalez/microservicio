@@ -6,12 +6,17 @@ import com.donaton.emergencias_service.service.EmergenciaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/v1/emergencias")
@@ -32,17 +37,33 @@ public class EmergenciaController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Permite ver las Emergencias mediante el Id")
-    public ResponseEntity<Emergencia> buscarPorId(@PathVariable Integer id) {
-        Optional<Emergencia> emergencia = service.getEmergencia(id);
+    public EntityModel<Emergencia> buscarPorId(@PathVariable Integer id) {
+        Emergencia emergencia = service.getEmergencia(id)
+                .orElseThrow(() -> new RuntimeException("Emergencia no encontrada"));
 
-        if (emergencia.isPresent())
-            return ResponseEntity.ok(emergencia.get()); //codigo del ok es 200
-        else
-            return ResponseEntity.notFound().build();
+        EntityModel<Emergencia> model = EntityModel.of(emergencia);
 
-        //return  service.getEstudiantes(id)
-        //      .map(ResponseEntity::ok)
+        // Self link
+        model.add(
+                linkTo(
+                        methodOn(EmergenciaController.class).buscarPorId(id)
+                ).withSelfRel()
+        );
 
+        // Link directo (estilo del ejemplo)
+        model.add(
+                Link.of("http://localhost:8086/api/v1/emergencias/" + id, "buscar por id")
+        );
+
+        // Link para listar todas
+        model.add(
+                linkTo(
+                        methodOn(EmergenciaController.class).listarNuevo()
+                ).withRel("Todas las emergencias")
+        );
+
+
+        return model;
     }
 
     @PostMapping

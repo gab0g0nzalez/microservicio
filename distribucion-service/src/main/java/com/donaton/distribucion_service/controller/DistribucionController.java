@@ -67,13 +67,6 @@ public class DistribucionController {
                 ).withRel("Todas las distribuciones")
         );
 
-        // Link para obtener distribución con beneficiario
-        model.add(
-                linkTo(
-                        methodOn(DistribucionController.class).buscarPorId(id)
-                ).withRel("Buscar por Id")
-        );
-
         return model;
     }
 

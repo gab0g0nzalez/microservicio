@@ -53,7 +53,7 @@ public class DonacionController {
 
         // Link directo (estilo del ejemplo)
         model.add(
-                Link.of("http://localhost:8080/api/v1/donaciones/" + id, "buscar por id")
+                Link.of("http://localhost:8085/api/v1/donaciones/" + id, "buscar por id")
         );
 
         // Link para listar todas
@@ -61,13 +61,6 @@ public class DonacionController {
                 linkTo(
                         methodOn(DonacionController.class).listarDonaciones()
                 ).withRel("Todas las donaciones")
-        );
-
-        // Link para obtener donación con usuario
-        model.add(
-                linkTo(
-                        methodOn(DonacionController.class).buscarPorId(id)
-                ).withRel("donación con usuario")
         );
 
         return model;

@@ -5,12 +5,17 @@ import com.donaton.voluntarios_service.service.VoluntarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/v1/voluntarios")
@@ -30,12 +35,32 @@ public class VoluntarioController {
 
     @Operation(summary = "Obtiene los datos de un voluntario en base a su Id.")
     @GetMapping("/{id}")
-    public ResponseEntity<Voluntario> buscarPorId(@PathVariable Integer id) {
-        Optional<Voluntario> voluntarios = service.getVoluntario(id);
+    public EntityModel<Voluntario> buscarPorId(@PathVariable Integer id) {
+        Voluntario voluntario = service.getVoluntario(id)
+                .orElseThrow(() -> new RuntimeException("Voluntario no encontrado"));
 
-        if (voluntarios.isPresent())
-            return ResponseEntity.ok(voluntarios.get());
-        else return ResponseEntity.notFound().build();
+        EntityModel<Voluntario> model = EntityModel.of(voluntario);
+
+        // Self link
+        model.add(
+                linkTo(
+                        methodOn(VoluntarioController.class).buscarPorId(id)
+                ).withSelfRel()
+        );
+
+        // Link directo (estilo del ejemplo)
+        model.add(
+                Link.of("http://localhost:8090/api/v1/voluntarios/" + id, "buscar por id")
+        );
+
+        // Link para listar todos
+        model.add(
+                linkTo(
+                        methodOn(VoluntarioController.class).listarVoluntarios()
+                ).withRel("Todos los voluntarios")
+        );
+
+        return model;
     }
 
     @Operation(summary = "Guarda un nuevo voluntario.")

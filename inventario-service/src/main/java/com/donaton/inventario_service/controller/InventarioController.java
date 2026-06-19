@@ -7,12 +7,17 @@ import com.donaton.inventario_service.service.InventarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/v1/inventarios")
@@ -33,13 +38,33 @@ public class InventarioController {
     }
     @Operation(summary = "Obtiene los datos de un inventario en base a su Id.")
     @GetMapping("/{id}")
-    public ResponseEntity<Inventario> buscarPorId(@PathVariable Integer id) {
-        Optional<Inventario> inventario = service.getInventarioById(id);
-        if (inventario.isPresent()) {
-            return ResponseEntity.ok(inventario.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public EntityModel<Inventario> buscarPorId(@PathVariable Integer id) {
+        Inventario inventario = service.getInventarioById(id)
+                .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
+
+        EntityModel<Inventario> model = EntityModel.of(inventario);
+
+        // Self link
+        model.add(
+                linkTo(
+                        methodOn(InventarioController.class).buscarPorId(id)
+                ).withSelfRel()
+        );
+
+        // Link directo (estilo del ejemplo)
+        model.add(
+                Link.of("http://localhost:8080/api/v1/inventarios/" + id, "buscar por id")
+        );
+
+        // Link para listar todos
+        model.add(
+                linkTo(
+                        methodOn(InventarioController.class).listarInventarios()
+                ).withRel("Todos los inventarios")
+        );
+
+
+        return model;
     }
     @Operation(summary = "Guarda un nuevo inventario.")
     @PostMapping

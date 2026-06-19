@@ -52,7 +52,7 @@ public class TipoDonacionController {
 
         // Link directo (estilo del ejemplo)
         model.add(
-                Link.of("http://localhost:8080/api/v1/tipos-donacion/" + id, "buscar por id")
+                Link.of("http://localhost:8085/api/v1/tipos-donacion/" + id, "buscar por id")
         );
 
         // Link para listar todos
