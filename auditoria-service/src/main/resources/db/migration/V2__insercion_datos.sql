@@ -1,0 +1,3 @@
+INSERT INTO `auditoria` (`id`, `accion`, `fecha_hora`, `descripcion`, `id_usuario`) VALUES
+                                                                                        (1, 'insercion', '2026-05-13 23:09:19', 'ingresar datos dentro de base de datos auditoria', 1),
+                                                                                        (2, 'actualizar', '2026-05-28 05:10:55', 'actualizar datos dentro de tabla usuarios, en base de datos usuarios', 1);
